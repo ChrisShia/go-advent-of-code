@@ -5,13 +5,21 @@ import (
 	"fmt"
 )
 
-type CalibrationSequence struct {
-	Sequence []CalibrationLine
+type CalibrationSequence []CalibrationLine
+
+func NewCalibrationSequence(sequence []byte) CalibrationSequence {
+	lines := bytes.Split(sequence, []byte("\n"))
+	var calibrationSequence CalibrationSequence
+	for _, line := range lines {
+		calibrationLine := NewCalibrationLine(line)
+		calibrationSequence = append(calibrationSequence, calibrationLine)
+	}
+	return calibrationSequence
 }
 
-func SumCalibrationSequence(sequence []byte) float64 {
+func SumNumbersInByteSequence(sequence []byte) int {
 	lines := bytes.Split(sequence, []byte("\n"))
-	var sum float64
+	var sum int
 	for _, line := range lines {
 		calibrationLine := NewCalibrationLine(line)
 		sum += calibrationLine.Number()
@@ -19,10 +27,13 @@ func SumCalibrationSequence(sequence []byte) float64 {
 	return sum
 }
 
-func DisplayCalibrationValues(sequence []byte) {
+func DisplayDigitsInByteSequence(sequence []byte) {
 	lines := bytes.Split(sequence, []byte("\n"))
 	for _, line := range lines {
 		calibrationLine := NewCalibrationLine(line)
-		fmt.Printf("%55s -> %4v\n", calibrationLine.value, calibrationLine.Number())
+		calibrationNumber := calibrationLine.Number()
+		//s := calibrationLine.String()
+		//fmt.Printf("%55s -> %4v\n", calibrationLine, calibrationNumber)
+		fmt.Printf("%55s -> %4v\n", calibrationLine.String(), calibrationNumber)
 	}
 }

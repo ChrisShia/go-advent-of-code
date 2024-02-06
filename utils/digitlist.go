@@ -4,15 +4,13 @@ import (
 	"math"
 )
 
-type DigitList struct {
-	digits []int
-}
+type DigitList []int
 
 func newDigitList() *DigitList {
 	return &DigitList{}
 }
 
-func (dl *DigitList) number() float64 {
+func (dl *DigitList) number() int {
 	return dl.intConcat()
 }
 
@@ -20,7 +18,7 @@ func (dl *DigitList) appendDigits(digits []int) {
 	if dl.isEmpty() && beginsWithZero(digits) {
 		return
 	} else {
-		dl.digits = append(dl.digits, digits...)
+		*dl = append(*dl, digits...)
 	}
 }
 
@@ -38,27 +36,27 @@ func createIntSliceAllElementsInitializedToDigit(digit int, n int) []int {
 }
 
 func (dl *DigitList) isEmpty() bool {
-	return len(dl.digits) == 0
+	return len(*dl) == 0
 }
 
 func beginsWithZero(digits []int) bool {
 	return digits[0] == 0
 }
 
-func (dl *DigitList) intConcat() float64 {
-	var number float64
-	orderOfNumber := len(dl.digits) - 1
+func (dl *DigitList) intConcat() int {
+	var number int
+	orderOfNumber := len(*dl) - 1
 	base10 := toBase10(orderOfNumber)
-	for _, digit := range dl.digits {
+	for _, digit := range *dl {
 		number = base10(digit)
 	}
 	return number
 }
 
-func toBase10(order int) func(digit int) float64 {
-	sum := float64(0)
-	return func(digit int) float64 {
-		sum += math.Pow10(order) * float64(digit)
+func toBase10(order int) func(digit int) int {
+	sum := 0
+	return func(digit int) int {
+		sum += int(math.Pow10(order)) * digit
 		order--
 		return sum
 	}
