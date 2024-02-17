@@ -38,7 +38,7 @@ func TestByteToNumerical(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ans := ByteToNumerical(tt.input)
+			ans := ByteToDigit(tt.input)
 			if ans != tt.want {
 				t.Errorf("got %s, want %s", ans, tt.want)
 			}

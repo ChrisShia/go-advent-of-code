@@ -1,6 +1,9 @@
 package dictionary
 
-import "bytes"
+import (
+	"bytes"
+	"math"
+)
 
 type Digit int
 
@@ -80,7 +83,7 @@ func IsNumericalCharacter(byte byte) bool {
 	return byte >= ZERO.Byte() && byte <= NINE.Byte()
 }
 
-func ByteToNumerical(byte byte) Digit {
+func ByteToDigit(byte byte) Digit {
 	for _, d := range Values() {
 		digitByte := d.Byte()
 		if digitByte == byte {
@@ -90,12 +93,42 @@ func ByteToNumerical(byte byte) Digit {
 	return NonDigit
 }
 
+func ByteToInt(byte byte) int {
+	for _, d := range Values() {
+		digitByte := d.Byte()
+		if digitByte == byte {
+			return d.Integer()
+		}
+	}
+	return -1
+}
+
+func BytesToInt(bs []byte) int {
+	var number int
+	orderOfNumber := len(bs) - 1
+	parse := parser(orderOfNumber)
+	for _, b := range bs {
+		number = parse(b)
+	}
+	return number
+}
+
+func parser(order int) func(b byte) int {
+	sum := 0
+	return func(b byte) int {
+		toInt := ByteToInt(b)
+		sum += int(math.Pow10(order)) * toInt
+		order--
+		return sum
+	}
+}
+
 func WordToDigitMapper() func(byte byte) Digit {
 	var word []byte
 	return func(byte byte) Digit {
 		word = append(word, byte)
 		if len(word) == 1 && IsNumericalCharacter(byte) {
-			return ByteToNumerical(byte)
+			return ByteToDigit(byte)
 		} else if len(word) < 3 {
 			return NonDigit
 		} else if len(word) < 4 {
