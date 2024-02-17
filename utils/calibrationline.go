@@ -57,7 +57,7 @@ func (cl *CalibrationLine) extractDigitSliceExcludeWords() []dictionary.Digit {
 	var digitsFound []dictionary.Digit
 	for _, char := range cl.value {
 		if isNumericalCharacter(char) {
-			integerRepresentation := dictionary.ByteToNumerical(char)
+			integerRepresentation := dictionary.ByteToDigit(char)
 			digitsFound = append(digitsFound, integerRepresentation)
 		}
 	}
