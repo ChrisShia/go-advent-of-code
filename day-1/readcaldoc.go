@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	input := utils.ReadFile("/Users/christos/Practise-code/Go/go-advent/caldoc/input.txt")
+	input := utils.ReadFile("/Users/christos/Practise-code/Go/go-advent/input/day-1.txt")
 	utils.DisplayDigitsInByteSequence(input)
 	fmt.Println(utils.SumNumbersInByteSequence(input))
 }

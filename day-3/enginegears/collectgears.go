@@ -12,7 +12,7 @@ var gearToPartsMap_ = make(map[int][]int)
 var partBuffer_ = make([]int, 0)
 var gearIdBuffer_ int
 var foundStar_ bool
-var input_ = utils.ReadFile("/Users/christos/Practise-code/Go/go-advent/input/engine.txt")
+var input_ = utils.ReadFile("/Users/christos/Practise-code/Go/go-advent/input/day-3.txt")
 var inputSize = len(input_)
 
 func main() {

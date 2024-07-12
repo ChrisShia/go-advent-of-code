@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	input := utils.ReadFile("/Users/christos/Practise-code/Go/go-advent/cubes/configurations")
+	input := utils.ReadFile("/Users/christos/Practise-code/Go/go-advent/input/day-2.txt")
 	//idSum := applyGameProcessor(input, summer())
 	minimumSetSum := applyGameProcessor(input, minimumSetPowerSummer())
 	fmt.Printf("The sum of ids is : %d", minimumSetSum)
