@@ -11,7 +11,7 @@ import (
 
 // Correct answer for 1st part: 24160
 
-var input_ = utils.ReadFile("scratchcards/scratchcards.txt")
+var input_ = utils.ReadFile("/Users/christos/Practise-code/Go/go-advent/input/scratchcards.txt")
 var sumOfPointsFromAllCards_ int
 var noOfCardEntitiesSlice_ []int
 

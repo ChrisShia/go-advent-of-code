@@ -9,7 +9,7 @@ import (
 
 var partNumberSlice_ = make([]int, 0)
 var partBuffer_ = make([]int, 0)
-var input_ = utils.ReadFile("engine/engine.txt")
+var input_ = utils.ReadFile("/Users/christos/Practise-code/Go/go-advent/input/engine.txt")
 var inputSize = len(input_)
 var foundSymbol_ bool
 
