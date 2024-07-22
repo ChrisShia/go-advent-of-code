@@ -10,7 +10,10 @@ import (
 	"os"
 )
 
-const inputPath_ = "/Users/christos/Practise-code/Go/go-advent/input/day-6.txt"
+// Answer a: 131376
+// Answer b: 34123437
+
+const inputPath_ = "input/day-6.txt"
 
 func main() {
 	timeByteSlice, distByteSlice := extractTimesAndDistances()

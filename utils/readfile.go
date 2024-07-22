@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -24,15 +25,31 @@ func ReadFile(path string) []byte {
 }
 
 func ReadBytesFromFile(path string, noOfBytes int) {
-	f, err := openFile(path)
+	f, err := OpenFile(path)
 	bytes := make([]byte, noOfBytes)
 	n1, err := f.Read(bytes)
 	check(err)
 	fmt.Printf("%d bytes: %s\n", n1, string(bytes[:n1]))
 }
 
-func openFile(path string) (*os.File, error) {
+func OpenFile(path string) (*os.File, error) {
 	f, err := os.Open(path)
 	check(err)
 	return f, err
+}
+
+func OpenFileLogFatal(path string) *os.File {
+	file, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return file
+}
+
+func CloseFile(file *os.File) {
+	func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+		}
+	}(file)
 }
