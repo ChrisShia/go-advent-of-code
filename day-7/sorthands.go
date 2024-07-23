@@ -7,6 +7,7 @@ import (
 	"go-advent-of-code/dictionary"
 	"go-advent-of-code/utils"
 	"log"
+	"os"
 	"sort"
 )
 
@@ -53,50 +54,73 @@ func (c *Card) Strength() int {
 	}
 }
 
-//func (c Card) StrengthJWeakest() int {
-//	switch c {
-//	case 'A':
-//		return 13
-//	case 'K':
-//		return 12
-//	case 'Q':
-//		return 11
-//	case 'T':
-//		return 10
-//	case '9':
-//		return 9
-//	case '8':
-//		return 8
-//	case '7':
-//		return 7
-//	case '6':
-//		return 6
-//	case '5':
-//		return 5
-//	case '4':
-//		return 4
-//	case '3':
-//		return 3
-//	case '2':
-//		return 2
-//	case 'J':
-//		return 1
-//	default:
-//		return -1
-//	}
-//}
+func (c *Card) StrengthJWeakest() int {
+	switch *c {
+	case 'A':
+		return 13
+	case 'K':
+		return 12
+	case 'Q':
+		return 11
+	case 'T':
+		return 10
+	case '9':
+		return 9
+	case '8':
+		return 8
+	case '7':
+		return 7
+	case '6':
+		return 6
+	case '5':
+		return 5
+	case '4':
+		return 4
+	case '3':
+		return 3
+	case '2':
+		return 2
+	case 'J':
+		return 1
+	default:
+		return -1
+	}
+}
 
-const HIGH_CARD int = 1
-const ONE_PAIR int = 2
-const TWO_PAIR int = 3
-const THREE_OF_A_KIND int = 4
-const FULL_HOUSE int = 5
-const FOUR_OF_A_KIND int = 6
-const FIVE_OF_A_KIND int = 7
+const HighCard int = 1
+const OnePair int = 2
+const TwoPair int = 3
+const ThreeOfAKind int = 4
+const FullHouse int = 5
+const FourOfAKind int = 6
+const FiveOfAKind int = 7
 
 func main() {
 	file := utils.OpenFileLogFatal(inputPath_)
 	defer utils.CloseFile(file)
+	hands := readHandsFromFile(file)
+	//typeRule := TypeRule(func(h *hand) map[Card]int { return h.cardFrequencyMap })
+	typeRule := TypeRule(func(h *hand) map[Card]int { return applyTrumpCard(h.cardFrequencyMap, Card('J')) })
+	strengthRule := StrengthRule(func(c *Card) int { return c.StrengthJWeakest() })
+	gameRules := &GameRules{typeRule, strengthRule}
+	byTotalStrength := By(func(h1, h2 *hand) bool { return gameRules.lessThan(h1, h2) })
+	byTotalStrength.SortSliceStable(hands)
+	sum := 0
+	for _, h := range hands {
+		for _, c := range h.cards {
+			fmt.Printf("%v ", gameRules.strengthRule.Strength(&c))
+		}
+		fmt.Printf("%v ", h.bid)
+		fmt.Println()
+	}
+	for key, h := range hands {
+		rank := key + 1
+		sum += rank * h.bid
+	}
+	fmt.Printf("Result is : %v\n", sum)
+}
+
+func readHandsFromFile(file *os.File) []*hand {
 	scanner := bufio.NewScanner(file)
 	var line []byte
 	var handAndBidSlice [][]byte
@@ -107,98 +131,133 @@ func main() {
 		bid := dictionary.BytesToInt(handAndBidSlice[1])
 		cardsByteSlice := handAndBidSlice[0]
 		cards := make([]Card, 0)
-		typMap := make(map[int]int)
+		cardFrequencyMap := make(map[Card]int)
 		for _, c := range cardsByteSlice {
 			card := Card(c)
 			cards = append(cards, card)
-			typMap[card.Strength()]++
+			cardFrequencyMap[card]++
 		}
-		hands = append(hands, newHand(cards, bid, typMap))
+		hands = append(hands, newHand(cards, bid, cardFrequencyMap))
 	}
-	byTotalStrength := By(func(h1, h2 *hand) bool { return h1.lessThan(h2) })
-	byTotalStrength.SortSliceStable(hands)
-	sum := 0
-	for _, h := range hands {
-		for _, c := range h.cards {
-			fmt.Printf("%v ", c.Strength())
-		}
-		fmt.Printf("%v ", h.bid)
-		fmt.Println()
-	}
-	for key, h := range hands {
-		rank := key + 1
-		sum += rank * h.bid
-	}
-	fmt.Printf("Result is : %v\n", sum)
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
+	return hands
+}
+
+func applyTrumpCard(cardMap map[Card]int, trump Card) map[Card]int {
+	trumps := cardMap[trump]
+	if trumps == 0 {
+		return cardMap
+	}
+	trumplessMap := make(map[Card]int)
+	mostFreqCard, _ := mostFrequentButExcludeTrump(cardMap, trump)
+	if mostFreqCard == 0 {
+		return cardMap
+	}
+	virtualFrequency := cardMap[mostFreqCard] + trumps
+	for c, f := range cardMap {
+		if c == trump {
+			continue
+		}
+		if c == mostFreqCard {
+			trumplessMap[c] = virtualFrequency
+			continue
+		}
+		trumplessMap[c] = f
+	}
+	return trumplessMap
+}
+
+func mostFrequentButExcludeTrump(cardMap map[Card]int, trump Card) (Card, int) {
+	var freq = 0
+	var mostFreqCard Card
+	for c, f := range cardMap {
+		if c == trump {
+			continue
+		}
+		if f > freq {
+			freq = f
+			mostFreqCard = c
+		}
+	}
+	return mostFreqCard, freq
 }
 
 type hand struct {
-	cards         []Card
-	bid           int
-	occurrenceMap map[int]int
+	cards            []Card
+	bid              int
+	cardFrequencyMap map[Card]int
 }
 
-func (h *hand) highestFreq() int {
-	var res = 1
-	for _, f := range h.occurrenceMap {
-		if f > res {
-			res = f
+func highestFreq(cardMap map[Card]int) int {
+	_, freq := highestFrequencyCard(cardMap)
+	return freq
+}
+
+func highestFrequencyCard(cardMap map[Card]int) (Card, int) {
+	var highFreq = 0
+	var highestFreqCard Card
+	for c, f := range cardMap {
+		if f > highFreq {
+			highFreq = f
+			highestFreqCard = c
 		}
 	}
-	return res
+	return highestFreqCard, highFreq
 }
 
-func (h *hand) Type() int {
-	return h.handType()
-}
-
-func (h *hand) handType() int {
-	switch len(h.occurrenceMap) {
+func handType(cardMap map[Card]int) int {
+	switch len(cardMap) {
 	case 5:
-		return HIGH_CARD
+		return HighCard
 	case 4:
-		return ONE_PAIR
+		return OnePair
 	case 3:
-		switch h.highestFreq() {
+		switch highestFreq(cardMap) {
 		case 2:
-			return TWO_PAIR
+			return TwoPair
 		case 3:
-			return THREE_OF_A_KIND
+			return ThreeOfAKind
 		}
 	case 2:
-		switch h.highestFreq() {
+		switch highestFreq(cardMap) {
 		case 3:
-			return FULL_HOUSE
+			return FullHouse
 		case 4:
-			return FOUR_OF_A_KIND
+			return FourOfAKind
 		}
 	case 1:
-		return FIVE_OF_A_KIND
+		return FiveOfAKind
 	}
 	return 0
 }
 
-func newHand(cards []Card, bid int, handType map[int]int) *hand {
+func newHand(cards []Card, bid int, handType map[Card]int) *hand {
 	return &hand{cards, bid, handType}
 }
 
-func (h *hand) compare(o *hand) int {
-	if o == nil {
-		return 1
-	}
-	if h.Type() > o.Type() {
-		return 1
-	} else if h.Type() < o.Type() {
+func (gr *GameRules) compare(h1, h2 *hand) int {
+	if h1 == nil {
 		return -1
 	}
-	for c := 0; c < len(h.cards); c++ {
-		if h.cards[c].Strength() < o.cards[c].Strength() {
+	if h2 == nil {
+		return 1
+	}
+	typeOfHand1 := gr.typeRule.Type(h1)
+	typeOfHand2 := gr.typeRule.Type(h2)
+	if typeOfHand1 > typeOfHand2 {
+		return 1
+	} else if typeOfHand1 < typeOfHand2 {
+		return -1
+	}
+	for c := 0; c < len(h1.cards); c++ {
+		strength1 := gr.strengthRule.Strength(&h1.cards[c])
+		strength2 := gr.strengthRule.Strength(&h2.cards[c])
+		if strength1 < strength2 {
 			return -1
 		}
-		if h.cards[c].Strength() > o.cards[c].Strength() {
+		if strength1 > strength2 {
 			return 1
 		}
 	}
@@ -216,8 +275,8 @@ func (h *hand) equals(o *hand) bool {
 	return true
 }
 
-func (h *hand) lessThan(o *hand) bool {
-	switch h.compare(o) {
+func (gr *GameRules) lessThan(h, o *hand) bool {
+	switch gr.compare(h, o) {
 	case -1:
 		return true
 	default:
@@ -225,14 +284,32 @@ func (h *hand) lessThan(o *hand) bool {
 	}
 }
 
+type GameRules struct {
+	typeRule     TypeRule
+	strengthRule StrengthRule
+}
+
+type TypeRule func(h *hand) map[Card]int
+
+func (tr *TypeRule) Type(h *hand) int {
+	ruleBasedCardMap := (*tr)(h)
+	return handType(ruleBasedCardMap)
+}
+
+type StrengthRule func(c *Card) int
+
+func (sr *StrengthRule) Strength(c *Card) int {
+	return (*sr)(c)
+}
+
 type By func(h1, h2 *hand) bool
 
-func (by By) SortSliceStable(hands []*hand) {
+func (by *By) SortSliceStable(hands []*hand) {
 	sort.SliceStable(hands, by.cmpFunc(hands))
 }
 
-func (by By) cmpFunc(hands []*hand) func(i int, j int) bool {
+func (by *By) cmpFunc(hands []*hand) func(i int, j int) bool {
 	return func(i, j int) bool {
-		return by(hands[i], hands[j])
+		return (*by)(hands[i], hands[j])
 	}
 }
