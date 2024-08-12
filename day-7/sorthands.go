@@ -12,7 +12,7 @@ import (
 )
 
 //part a: 250946742
-//part b:
+//part b: 251824095
 
 //Notes:
 //1. occurrence map should be lazily instantiated upon request, instead of given as constructor parameter
@@ -279,6 +279,7 @@ func (gr *GameRules) lessThan(h, o *hand) bool {
 	switch gr.compare(h, o) {
 	case -1:
 		return true
+
 	default:
 		return false
 	}
@@ -305,10 +306,10 @@ func (sr *StrengthRule) Strength(c *Card) int {
 type By func(h1, h2 *hand) bool
 
 func (by *By) SortSliceStable(hands []*hand) {
-	sort.SliceStable(hands, by.cmpFunc(hands))
+	sort.SliceStable(hands, by.compareFunc(hands))
 }
 
-func (by *By) cmpFunc(hands []*hand) func(i int, j int) bool {
+func (by *By) compareFunc(hands []*hand) func(i int, j int) bool {
 	return func(i, j int) bool {
 		return (*by)(hands[i], hands[j])
 	}
