@@ -2,47 +2,12 @@ package main
 
 import (
 	"fmt"
-	"go-advent-of-code/utils"
 	"log"
-	"os"
 )
 
-const inputPath_ = "input/day-8.txt"
-
-var leftRightTurns_ []int
-
-func main() {
-	file := utils.OpenFileLogFatal(inputPath_)
-	defer utils.CloseFile(file)
-	leftTurnOperator, rightTurnOperator := createLeftRightOperators(file)
-	//resultNodeId := applyLeftRightTurnsOnStartingNode(leftTurnOperator, rightTurnOperator, "AAA", leftRightTurns_)
-	counter := count[string](
-		func(start string) string {
-			return applyLeftRightTurnsOnStartingNode(leftTurnOperator, rightTurnOperator, start, leftRightTurns_)
-		},
-		func(input string) bool {
-			if input == "ZZZ" {
-				return false
-			}
-			return true
-		}, "AAA")
-	fmt.Println(counter * len(leftRightTurns_))
-}
-
-func createLeftRightOperators(file *os.File) (Matrix, Matrix) {
-	orderedKeys := make([]string, 0)
-	leftOrderedMap := newOrderedMap(&orderedKeys)
-	rightOrderedMap := newOrderedMap(&orderedKeys)
-	nodeSetter := setNodesFromInput[[]byte](leftOrderedMap, rightOrderedMap, func(input []byte) string { return string(input) })
-	populateLeftRightAdjacencyMatrices(file, nodeSetter)
-	leftTurnOperator := Matrix{leftOrderedMap}
-	rightTurnOperator := Matrix{rightOrderedMap}
-	return leftTurnOperator, rightTurnOperator
-}
-
 func count[T any](operation func(start T) T, keepCounting func(input T) bool, start T) int {
-	result := operation(start)
-	counter := 1
+	result := start
+	counter := 0
 	for keepCounting(result) {
 		result = operation(result)
 		counter++
@@ -60,7 +25,7 @@ func applyLeftRightTurnsOnStartingNode(leftTurnOperator, rightTurnOperator Matri
 			return rightTurnOperator.transform(nodeId)
 		}
 		return nodeId
-	}, startingNodeId}.walk(leftRightTurns)
+	}, startingNodeId}.apply(leftRightTurns)
 }
 
 type By struct {
@@ -68,7 +33,7 @@ type By struct {
 	startingFromNodeId string
 }
 
-func (by By) walk(turns []int) string {
+func (by By) apply(turns []int) string {
 	resultantNodeId := by.startingFromNodeId
 	for _, leftOrRight := range turns {
 		if resultantNodeId == "" {
@@ -79,34 +44,23 @@ func (by By) walk(turns []int) string {
 	return resultantNodeId
 }
 
-//func (by *By) reduce(operation []byte) transform {
-//	var result = make([]transform, 0)
-//	for index := 0; index < len(operation)-1; index++ {
-//		by(operation[index], operation[index+1])
-//	}
-//}
-
-//type transform struct {
-//	m Matrix
-//}
-
 type Matrix struct {
-	om *OrderedMap
+	*OrderedMap
 }
 
 func (m Matrix) transform(nodeId string) string {
-	adjacencyOfNode := m.om.adjacencyMap[nodeId]
-	return (*m.om.orderedKeys)[adjacencyOfNode-1]
+	adjacencyOfNode := m.adjacencyMap[nodeId]
+	return (*m.orderedKeys)[adjacencyOfNode-1]
 }
 
 func (m Matrix) multiply(o Matrix) Matrix {
-	orderedKeys := *m.om.orderedKeys
+	orderedKeys := *m.orderedKeys
 	resAdjacencyMap := make(map[string]int)
 	productMap := OrderedMap{resAdjacencyMap, &orderedKeys}
 	for i := range orderedKeys {
 		rowSlice := m.row(i + 1)
 		for _, key := range orderedKeys {
-			columnNonZeroElement := o.om.adjacencyMap[key]
+			columnNonZeroElement := o.adjacencyMap[key]
 			ijElement := rowSlice[columnNonZeroElement-1]
 			if ijElement == 0 {
 				continue
@@ -119,10 +73,10 @@ func (m Matrix) multiply(o Matrix) Matrix {
 }
 
 func (m Matrix) row(rowIndex int) []int {
-	orderedKeys := *m.om.orderedKeys
+	orderedKeys := *m.orderedKeys
 	var r = make([]int, 0)
 	for _, nodeId := range orderedKeys {
-		nodeAdjacency := m.om.adjacencyMap[nodeId]
+		nodeAdjacency := m.adjacencyMap[nodeId]
 		if rowIndex == nodeAdjacency {
 			r = append(r, 1)
 		} else {
@@ -133,10 +87,10 @@ func (m Matrix) row(rowIndex int) []int {
 }
 
 func (m Matrix) column(colIndex int) []int {
-	orderedKeys := *m.om.orderedKeys
+	orderedKeys := *m.orderedKeys
 	var col = make([]int, 0)
 	nodeId := orderedKeys[colIndex]
-	adj := m.om.adjacencyMap[nodeId]
+	adj := m.adjacencyMap[nodeId]
 	for k := range orderedKeys {
 		if adj == k+1 {
 			col = append(col, 1)
@@ -179,16 +133,3 @@ func (om *OrderedMap) addSingleAdjacencyForNode(nodeId string, adjNodeId string)
 	}
 	om.adjacencyMap[nodeId] = om.getOrder(adjNodeId)
 }
-
-//type Column func(dim int) []any
-//
-//func (from *Column) get(index int) any {
-//	return (*from)()[index]
-//}
-//
-//func orthonormalIntColumn(nonZeroElement int) Column {
-//	return func() []any {
-//		ints := make([]int, 0)
-//		if
-//	}
-//}

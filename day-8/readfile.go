@@ -3,16 +3,12 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"fmt"
-	"os"
 )
 
-func populateLeftRightAdjacencyMatrices(file *os.File, nodeSetter func(input [][]byte)) {
-	scanner := bufio.NewScanner(file)
+const inputPath_ = "input/day-8.txt"
+
+func populateLeftRightAdjacencyMatrices(scanner *bufio.Scanner, nodeSetter func(input [][]byte)) {
 	var line []byte
-	scanner.Scan()
-	line = scanner.Bytes()
-	leftRightTurns_ = binaryRepresentationOfLeftRight(line)
 	for scanner.Scan() {
 		line = scanner.Bytes()
 		if len(line) == 0 {
@@ -50,27 +46,48 @@ func binaryRepresentationOfLeftRight(line []byte) []int {
 	return binarySequenceOfTurns
 }
 
-func setNodesFromInput[T any](leftOrderedMap, rightOrderedMap *OrderedMap, stringer func(T) string) func(input []T) {
+func setNodesFromByteInput() func(left, right Matrix) func(input [][]byte) {
+	return func(left, right Matrix) func(input [][]byte) {
+		return setNodesFromAnyInput[[]byte](left, right, byteStringer())
+	}
+}
+
+//func setNodesFromByteInputAndIdentifyStartingNodes() func(left, right *OrderedMap) func(input [][]byte) {
+//	return func(left, right *OrderedMap) func(input [][]byte) {
+//		return setNodesFromInputAndPopulateStartingNodes[[]byte](left, right, byteStringer())
+//	}
+//}
+
+func byteStringer() func([]byte) string {
+	return func(input []byte) string { return string(input) }
+}
+
+func setNodesFromAnyInput[T any](leftOrderedMap, rightOrderedMap Matrix, stringer func(T) string) func(input []T) {
 	return func(input []T) {
-		//nodeId := fmt.Sprintf("%v", input[0])
 		nodeId := stringer(input[0])
-		//leftAdjNodeId := fmt.Sprintf("%v", input[1])
 		leftAdjNodeId := stringer(input[1])
-		//rightAdjNodeId := fmt.Sprintf("%v", input[2])
 		rightAdjNodeId := stringer(input[2])
 		leftOrderedMap.addSingleAdjacencyForNode(nodeId, leftAdjNodeId)
 		rightOrderedMap.addSingleAdjacencyForNode(nodeId, rightAdjNodeId)
 	}
 }
 
-func setNodes(leftOrderedMap, rightOrderedMap *OrderedMap) func(input ...any) {
-	return func(input ...any) {
-		nodeId := fmt.Sprintf("%v", input[0])
-		leftAdjNodeId := fmt.Sprintf("%v", input[1])
-		rightAdjNodeId := fmt.Sprintf("%v", input[2])
-		leftOrderedMap.addSingleAdjacencyForNode(nodeId, leftAdjNodeId)
-		rightOrderedMap.addSingleAdjacencyForNode(nodeId, rightAdjNodeId)
+func createLeftRightOperators(scanner *bufio.Scanner, adjacencySetterCreator func(left, right Matrix) func(input [][]byte)) (Matrix, Matrix) {
+	orderedKeys := make([]string, 0)
+	leftTurnOperator := Matrix{newOrderedMap(&orderedKeys)}
+	rightTurnOperator := Matrix{newOrderedMap(&orderedKeys)}
+	adjacencySetter := adjacencySetterCreator(leftTurnOperator, rightTurnOperator)
+	var line []byte
+	for scanner.Scan() {
+		line = scanner.Bytes()
+		if len(line) == 0 {
+			continue
+		}
+		fields := bytes.Fields(line)
+		trimmedFields := trimUnnecessaryChars(fields)
+		adjacencySetter(trimmedFields)
 	}
+	return leftTurnOperator, rightTurnOperator
 }
 
 func isExcludedCharacter() func(r rune) bool {

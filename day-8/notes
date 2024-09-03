@@ -1,0 +1,6 @@
+0 = {string} "VGA"
+1 = {string} "AAA"
+2 = {string} "LHA"
+3 = {string} "RHA"
+4 = {string} "CVA"
+5 = {string} "LDA"
