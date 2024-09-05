@@ -9,8 +9,8 @@ func Test_Multiply(t *testing.T) {
 	left, right := createAdjacencyMatrices()
 	leftRight := left.multiply(right)
 	rightLeft := right.multiply(left)
-	fmt.Println(leftRight.adjacencyMap)
-	fmt.Println(rightLeft.adjacencyMap)
+	fmt.Println(leftRight.om.adjacencyMap)
+	fmt.Println(rightLeft.om.adjacencyMap)
 }
 
 func Test_TransformNode(t *testing.T) {
@@ -43,12 +43,12 @@ func Test_ApplyLeftRightTurnsOnStartingNode(t *testing.T) {
 		leftOrRightBinRepresentation []int
 		want                         string
 	}{
-		{"apply LR on AAA", "AAA", []int{0, 1}, "ZZZ"},
-		{"apply LLR on AAA", "AAA", []int{0, 0, 1}, "BBB"},
-		{"apply LLRL on AAA", "AAA", []int{0, 0, 1, 0}, "AAA"},
-		{"apply LLRLL on AAA", "AAA", []int{0, 0, 1, 0, 0}, "BBB"},
-		{"apply LLRLLR on AAA", "AAA", []int{0, 0, 1, 0, 0, 1}, "ZZZ"},
-		{"apply LLRLLRRR on AAA", "AAA", []int{0, 0, 1, 0, 0, 1, 1, 1}, "ZZZ"},
+		{"walk LR on AAA", "AAA", []int{0, 1}, "ZZZ"},
+		{"walk LLR on AAA", "AAA", []int{0, 0, 1}, "BBB"},
+		{"walk LLRL on AAA", "AAA", []int{0, 0, 1, 0}, "AAA"},
+		{"walk LLRLL on AAA", "AAA", []int{0, 0, 1, 0, 0}, "BBB"},
+		{"walk LLRLLR on AAA", "AAA", []int{0, 0, 1, 0, 0, 1}, "ZZZ"},
+		{"walk LLRLLRRR on AAA", "AAA", []int{0, 0, 1, 0, 0, 1, 1, 1}, "ZZZ"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -68,7 +68,7 @@ func Test_Count(t *testing.T) {
 		leftOrRightBinRepresentation []int
 		want                         string
 	}{
-		{"apply LR on AAA", "AAA", []int{0, 1}, "ZZZ"},
+		{"walk LR on AAA", "AAA", []int{0, 1}, "ZZZ"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -83,11 +83,13 @@ func Test_Count(t *testing.T) {
 func createAdjacencyMatrices() (Matrix, Matrix) {
 	input := [][]string{{"AAA", "BBB", "BBB"}, {"BBB", "AAA", "ZZZ"}, {"ZZZ", "ZZZ", "ZZZ"}}
 	orderedKeys := make([]string, 0)
-	leftMatrix := Matrix{newOrderedMap(&orderedKeys)}
-	rightMatrix := Matrix{newOrderedMap(&orderedKeys)}
-	nodeSetter := setNodesFromAnyInput[string](leftMatrix, rightMatrix, func(input string) string { return input })
+	leftOrderedMap := newOrderedMap(&orderedKeys)
+	rightOrderedMap := newOrderedMap(&orderedKeys)
+	nodeSetter := setNodesFromInput[string](leftOrderedMap, rightOrderedMap, func(input string) string { return input })
 	for _, adjacency := range input {
 		nodeSetter(adjacency)
 	}
+	leftMatrix := Matrix{leftOrderedMap}
+	rightMatrix := Matrix{rightOrderedMap}
 	return leftMatrix, rightMatrix
 }
