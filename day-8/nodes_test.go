@@ -43,12 +43,12 @@ func Test_ApplyLeftRightTurnsOnStartingNode(t *testing.T) {
 		leftOrRightBinRepresentation []int
 		want                         string
 	}{
-		{"walk LR on AAA", "AAA", []int{0, 1}, "ZZZ"},
-		{"walk LLR on AAA", "AAA", []int{0, 0, 1}, "BBB"},
-		{"walk LLRL on AAA", "AAA", []int{0, 0, 1, 0}, "AAA"},
-		{"walk LLRLL on AAA", "AAA", []int{0, 0, 1, 0, 0}, "BBB"},
-		{"walk LLRLLR on AAA", "AAA", []int{0, 0, 1, 0, 0, 1}, "ZZZ"},
-		{"walk LLRLLRRR on AAA", "AAA", []int{0, 0, 1, 0, 0, 1, 1, 1}, "ZZZ"},
+		{"apply LR on AAA", "AAA", []int{0, 1}, "ZZZ"},
+		{"apply LLR on AAA", "AAA", []int{0, 0, 1}, "BBB"},
+		{"apply LLRL on AAA", "AAA", []int{0, 0, 1, 0}, "AAA"},
+		{"apply LLRLL on AAA", "AAA", []int{0, 0, 1, 0, 0}, "BBB"},
+		{"apply LLRLLR on AAA", "AAA", []int{0, 0, 1, 0, 0, 1}, "ZZZ"},
+		{"apply LLRLLRRR on AAA", "AAA", []int{0, 0, 1, 0, 0, 1, 1, 1}, "ZZZ"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -68,7 +68,7 @@ func Test_Count(t *testing.T) {
 		leftOrRightBinRepresentation []int
 		want                         string
 	}{
-		{"walk LR on AAA", "AAA", []int{0, 1}, "ZZZ"},
+		{"apply LR on AAA", "AAA", []int{0, 1}, "ZZZ"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
