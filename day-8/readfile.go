@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"os"
 )
 
@@ -50,7 +49,7 @@ func binaryRepresentationOfLeftRight(line []byte) []int {
 	return binarySequenceOfTurns
 }
 
-func setNodesFromInput[T any](leftOrderedMap, rightOrderedMap *OrderedMap, stringer func(T) string) func(input []T) {
+func nodesFromInputSetter[T any](leftOrderedMap, rightOrderedMap *OrderedMap, stringer func(T) string) func(input []T) {
 	return func(input []T) {
 		//nodeId := fmt.Sprintf("%v", input[0])
 		nodeId := stringer(input[0])
@@ -63,18 +62,19 @@ func setNodesFromInput[T any](leftOrderedMap, rightOrderedMap *OrderedMap, strin
 	}
 }
 
-func setNodes(leftOrderedMap, rightOrderedMap *OrderedMap) func(input ...any) {
-	return func(input ...any) {
-		nodeId := fmt.Sprintf("%v", input[0])
-		leftAdjNodeId := fmt.Sprintf("%v", input[1])
-		rightAdjNodeId := fmt.Sprintf("%v", input[2])
-		leftOrderedMap.addSingleAdjacencyForNode(nodeId, leftAdjNodeId)
-		rightOrderedMap.addSingleAdjacencyForNode(nodeId, rightAdjNodeId)
-	}
-}
-
 func isExcludedCharacter() func(r rune) bool {
 	return func(r rune) bool {
 		return bytes.ContainsRune([]byte("=(,)"), r)
 	}
+}
+
+func createLeftRightOperators(file *os.File) (Matrix, Matrix) {
+	orderedKeys := make([]string, 0)
+	leftOrderedMap := newOrderedMap(&orderedKeys)
+	rightOrderedMap := newOrderedMap(&orderedKeys)
+	nodeSetter := nodesFromInputSetter[[]byte](leftOrderedMap, rightOrderedMap, func(input []byte) string { return string(input) })
+	populateLeftRightAdjacencyMatrices(file, nodeSetter)
+	leftTurnOperator := Matrix{leftOrderedMap}
+	rightTurnOperator := Matrix{rightOrderedMap}
+	return leftTurnOperator, rightTurnOperator
 }

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"go-advent-of-code/utils"
-	"os"
+	"strings"
 )
 
 const inputPath_ = "input/day-8.txt"
@@ -14,71 +14,59 @@ func main() {
 	file := utils.OpenFileLogFatal(inputPath_)
 	defer utils.CloseFile(file)
 	leftTurnOperator, rightTurnOperator := createLeftRightOperators(file)
-	fmt.Println(applyLeftRightTurnsOnStartingNode(leftTurnOperator, rightTurnOperator, "AAA", leftRightTurns_))
-}
-
-func createLeftRightOperators(file *os.File) (Matrix, Matrix) {
-	orderedKeys := make([]string, 0)
-	leftOrderedMap := newOrderedMap(&orderedKeys)
-	rightOrderedMap := newOrderedMap(&orderedKeys)
-	nodeSetter := setNodesFromInput[[]byte](leftOrderedMap, rightOrderedMap, func(input []byte) string { return string(input) })
-	populateLeftRightAdjacencyMatrices(file, nodeSetter)
-	leftTurnOperator := Matrix{leftOrderedMap}
-	rightTurnOperator := Matrix{rightOrderedMap}
-	return leftTurnOperator, rightTurnOperator
+	fmt.Println(applyLeftRightTurnsOnStartingState(leftTurnOperator, rightTurnOperator, leftRightTurns_))
 }
 
 func applyLeftRightTurnsOnStartingNode(leftTurnOperator, rightTurnOperator Matrix, startingNodeId string, leftRightTurns []int) (int, adjacency) {
-	return By{func(leftOrRight int, node adjacency) adjacency {
-		if leftOrRight == 0 {
-			return leftTurnOperator.transform(node)
-		}
-		if leftOrRight == 1 {
-			return rightTurnOperator.transform(node)
-		}
-		return node
-	},
-		func(node adjacency) bool {
-			if node.id() == "ZZZ" {
+	return By{leftRightTransformFunc(leftTurnOperator, rightTurnOperator),
+		func(nodeId string) bool {
+			if nodeId == "ZZZ" {
 				return false
 			}
 			return true
-		}, adjacency(node(startingNodeId))}.apply(leftRightTurns)
+		}, adjacency(node(startingNodeId))}.apply(leftRightTurns, newCounter())
 }
 
-func applyLeftRightTurnsOnStartingState(leftTurnOperator, rightTurnOperator Matrix, startingNodeId string, leftRightTurns []int) (int, adjacency) {
-	return By{func(leftOrRight int, node adjacency) adjacency {
-		if leftOrRight == 0 {
-			return leftTurnOperator.transform(node)
-		}
-		if leftOrRight == 1 {
-			return rightTurnOperator.transform(node)
-		}
-		return node
-	},
-		func(node adjacency) bool {
-			if node.id() == "ZZZ" {
-				return false
-			}
-			return true
-		}, adjacency(node(startingNodeId))}.apply(leftRightTurns)
+func isStartingNode(s string) bool {
+	bytes := []byte(s)
+	if len(bytes) == 0 {
+		return false
+	}
+	return byteSliceEndsInA(bytes)
+}
+
+func byteSliceEndsInA(bs []byte) bool {
+	return 'A' == bs[len(bs)-1]
+}
+
+func stringEndsInZ(s string) bool {
+	return 'Z' == s[len(s)-1]
 }
 
 type By struct {
-	transform          func(leftOrRight int, nodeId adjacency) adjacency
-	keepCounting       func(input adjacency) bool
-	startingFromNodeId adjacency
+	transform    func(leftOrRight int, nodeId adjacency) adjacency
+	keepCounting func(inputId string) bool
+	startingFrom adjacency
 }
 
-func (by By) apply(path path) (int, adjacency) {
-	resultantNodeId := by.startingFromNodeId
-	c := 0
-	for by.keepCounting(resultantNodeId) {
-		leftOrRight := path.step(c)
-		resultantNodeId = by.transform(leftOrRight, resultantNodeId)
-		c++
+func (by By) apply(path path, c counter) (int, adjacency) {
+	resultantNode := by.startingFrom
+	for !resultantNode.isEnd(by.keepCounting) {
+		leftOrRight := path.step(c.count)
+		resultantNode = by.transform(leftOrRight, resultantNode)
+		c.increment(resultantNode)
 	}
-	return c, resultantNodeId
+	return c.count, resultantNode
+}
+
+type counter struct {
+	count       int
+	displayFunc func(count int, input adjacency)
+}
+
+func (c *counter) increment(a adjacency) {
+	c.count++
+	c.displayFunc(c.count, a)
 }
 
 type path []int
@@ -96,22 +84,56 @@ func mod(i, j int) int {
 
 type adjacency interface {
 	adjacent(m Matrix) adjacency
-	id() string
+	string() string
+	isEnd(func(id string) bool) bool
+	containsFunc(func(id string) bool) bool
 }
 
 type node string
 type NodeState []adjacency
 
-func (n node) id() string {
-	return n.string()
+func (n node) containsFunc(f func(id string) bool) bool {
+	return f(n.string())
+}
+
+func (n node) isEnd(keepCountingFunc func(id string) bool) bool {
+	if keepCountingFunc(n.string()) {
+		return false
+	}
+	return true
 }
 
 func (n node) string() string {
 	return string(n)
 }
 
-func (ns NodeState) id() string {
-	return ""
+func (ns NodeState) containsFunc(f func(id string) bool) bool {
+	for _, n := range ns {
+		if n.containsFunc(f) {
+			return true
+		}
+	}
+	return false
+}
+
+func (ns NodeState) isEnd(keepCountingFunc func(id string) bool) bool {
+	keepCounting := false
+	isEnd := true
+	for _, n := range ns {
+		if keepCountingFunc(n.string()) {
+			return keepCounting
+		}
+	}
+	return isEnd
+}
+
+func (ns NodeState) string() string {
+	stringBuilder := strings.Builder{}
+	for _, n := range ns {
+		stringBuilder.WriteString(n.string())
+		stringBuilder.WriteByte(' ')
+	}
+	return stringBuilder.String()
 }
 
 func (ns NodeState) adjacent(m Matrix) adjacency {
