@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"go-advent-of-code/utils"
 	"strings"
 )
@@ -14,17 +13,18 @@ func main() {
 	file := utils.OpenFileLogFatal(inputPath_)
 	defer utils.CloseFile(file)
 	leftTurnOperator, rightTurnOperator := createLeftRightOperators(file)
-	fmt.Println(applyLeftRightTurnsOnStartingState(leftTurnOperator, rightTurnOperator, leftRightTurns_))
+	applyLeftRightTurnsOnStartingState(leftTurnOperator, rightTurnOperator, leftRightTurns_)
 }
 
 func applyLeftRightTurnsOnStartingNode(leftTurnOperator, rightTurnOperator Matrix, startingNodeId string, leftRightTurns []int) (int, adjacency) {
+	w := walker{pos: startingNodeId, firstPos: startingNodeId, visualizer: nil}
 	return By{leftRightTransformFunc(leftTurnOperator, rightTurnOperator),
 		func(nodeId string) bool {
 			if nodeId == "ZZZ" {
 				return false
 			}
 			return true
-		}, adjacency(node(startingNodeId))}.apply(leftRightTurns, newCounter())
+		}, adjacency(&w)}.apply(leftRightTurns)
 }
 
 func isStartingNode(s string) bool {
@@ -44,29 +44,22 @@ func stringEndsInZ(s string) bool {
 }
 
 type By struct {
-	transform    func(leftOrRight int, nodeId adjacency) adjacency
+	turn         func(leftOrRight int, nodeId adjacency) adjacency
 	keepCounting func(inputId string) bool
 	startingFrom adjacency
 }
 
-func (by By) apply(path path, c counter) (int, adjacency) {
-	resultantNode := by.startingFrom
-	for !resultantNode.isEnd(by.keepCounting) {
-		leftOrRight := path.step(c.count)
-		resultantNode = by.transform(leftOrRight, resultantNode)
-		c.increment(resultantNode)
+func (by By) apply(path path) (int, adjacency) {
+	a := by.startingFrom
+	iteration, step := 0, 0
+	for !a.isEnd(by.keepCounting) {
+		leftOrRight := path.step(iteration)
+		a = by.turn(leftOrRight, a)
+		step = iteration + 1
+		a.visualize(step)
+		iteration++
 	}
-	return c.count, resultantNode
-}
-
-type counter struct {
-	count       int
-	displayFunc func(count int, input adjacency)
-}
-
-func (c *counter) increment(a adjacency) {
-	c.count++
-	c.displayFunc(c.count, a)
+	return step, a
 }
 
 type path []int
@@ -83,78 +76,142 @@ func mod(i, j int) int {
 }
 
 type adjacency interface {
-	adjacent(m Matrix) adjacency
+	progress(m Matrix)
 	string() string
 	isEnd(func(id string) bool) bool
 	containsFunc(func(id string) bool) bool
+	visualize(step int)
+	beginning() string
 }
 
-type node string
-type NodeState []adjacency
-
-func (n node) containsFunc(f func(id string) bool) bool {
-	return f(n.string())
+type walker struct {
+	pos        string
+	firstPos   string
+	visualizer func(w *walker, step int)
+	stepCache  []int
 }
 
-func (n node) isEnd(keepCountingFunc func(id string) bool) bool {
-	if keepCountingFunc(n.string()) {
+func newW(startPos string) walker {
+	return newWalker(startPos, nil)
+}
+
+func newWalker(startPos string, vis func(w *walker, step int)) walker {
+	return walker{pos: startPos, firstPos: startPos, visualizer: vis}
+}
+
+type team struct {
+	as         []adjacency
+	visualizer func(t *team, step int)
+}
+
+func newT(as []adjacency) team {
+	return newTeam(as, nil)
+}
+
+func newTeam(as []adjacency, vis func(t *team, step int)) team {
+	return team{as: as, visualizer: vis}
+}
+
+func (w *walker) updateCache(step int) {
+	w.stepCache = append(w.stepCache, step)
+}
+
+//
+//func (t *team)
+
+func (w *walker) beginning() string {
+	return w.firstPos
+}
+
+func (t *team) beginning() string {
+	builder := strings.Builder{}
+	for _, a := range t.as {
+		builder.WriteString(a.beginning())
+		builder.WriteByte(' ')
+	}
+	return builder.String()
+}
+
+func (w *walker) visualize(step int) {
+	if w.visualizer == nil {
+		return
+	}
+	w.visualizer(w, step)
+	return
+}
+
+func (t *team) visualize(step int) {
+	if t.visualizer == nil {
+		return
+	}
+	t.visualizer(t, step)
+	return
+}
+
+func (w *walker) containsFunc(f func(id string) bool) bool {
+	return f(w.pos)
+}
+
+func (w *walker) isEnd(keepCountingFunc func(id string) bool) bool {
+	if keepCountingFunc(w.pos) {
 		return false
 	}
 	return true
 }
 
-func (n node) string() string {
-	return string(n)
+func (w *walker) string() string {
+	return w.pos
 }
 
-func (ns NodeState) containsFunc(f func(id string) bool) bool {
-	for _, n := range ns {
-		if n.containsFunc(f) {
+func (t *team) containsFunc(f func(id string) bool) bool {
+	for _, a := range t.as {
+		if a.containsFunc(f) {
 			return true
 		}
 	}
 	return false
 }
 
-func (ns NodeState) isEnd(keepCountingFunc func(id string) bool) bool {
+func (t *team) isEnd(keepCountingFunc func(id string) bool) bool {
 	keepCounting := false
 	isEnd := true
-	for _, n := range ns {
-		if keepCountingFunc(n.string()) {
+	for _, a := range t.as {
+		if keepCountingFunc(a.string()) {
 			return keepCounting
 		}
 	}
 	return isEnd
 }
 
-func (ns NodeState) string() string {
+func (t *team) string() string {
 	stringBuilder := strings.Builder{}
-	for _, n := range ns {
-		stringBuilder.WriteString(n.string())
+	for _, a := range t.as {
+		stringBuilder.WriteString(a.string())
 		stringBuilder.WriteByte(' ')
 	}
 	return stringBuilder.String()
 }
 
-func (ns NodeState) adjacent(m Matrix) adjacency {
-	adjacentState := make([]adjacency, 0)
-	for _, n := range ns {
-		adjacentState = append(adjacentState, n.adjacent(m))
+func (t *team) progress(m Matrix) {
+	for index := range t.as {
+		(t.as)[index].progress(m)
 	}
-	return adjacency(NodeState(adjacentState))
+	return
 }
 
-func (n node) adjacent(m Matrix) adjacency {
-	adjacencyOfNode := m.adjacencyMap[n.string()]
-	return node((*m.orderedKeys)[adjacencyOfNode-1])
+func (w *walker) progress(m Matrix) {
+	adjacencyOfNode := m.adjacencyMap[w.pos]
+	w.pos = (*m.orderedKeys)[adjacencyOfNode-1]
+	return
 }
 
 type Matrix struct {
 	*OrderedMap
 }
 
-func (m Matrix) transform(node adjacency) adjacency {
-	return node.adjacent(m)
+func (m Matrix) transform(adj adjacency) adjacency {
+	adj.progress(m)
+	return adj
 }
 
 func (m Matrix) multiply(o Matrix) Matrix {
