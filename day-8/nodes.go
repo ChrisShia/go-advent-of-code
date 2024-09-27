@@ -2,10 +2,13 @@ package main
 
 import (
 	"go-advent-of-code/utils"
+	"go-advent-of-code/utils/math"
 	"strings"
 )
 
 const inputPath_ = "input/day-8.txt"
+
+//	part b : 22103062509257
 
 var leftRightTurns_ []int
 
@@ -68,27 +71,24 @@ func (p path) step(i int) int {
 	if i < len(p) {
 		return p[i]
 	}
-	return p[mod(i, len(p))]
-}
-
-func mod(i, j int) int {
-	return i % j
+	return p[math.Mod(i, len(p))]
 }
 
 type adjacency interface {
 	progress(m Matrix)
 	string() string
-	isEnd(func(id string) bool) bool
-	containsFunc(func(id string) bool) bool
+	isEnd(func(position string) bool) bool
+	isAt(func(position string) bool) bool
 	visualize(step int)
-	beginning() string
+	cachedPositions(upToStep int) []int
 }
 
 type walker struct {
-	pos        string
-	firstPos   string
-	visualizer func(w *walker, step int)
-	stepCache  []int
+	pos            string
+	firstPos       string
+	visualizer     func(w *walker, step int)
+	stepCache      []int
+	cachePredicate func(pos string) bool
 }
 
 func newW(startPos string) walker {
@@ -102,6 +102,7 @@ func newWalker(startPos string, vis func(w *walker, step int)) walker {
 type team struct {
 	as         []adjacency
 	visualizer func(t *team, step int)
+	cache      []int
 }
 
 func newT(as []adjacency) team {
@@ -112,24 +113,41 @@ func newTeam(as []adjacency, vis func(t *team, step int)) team {
 	return team{as: as, visualizer: vis}
 }
 
-func (w *walker) updateCache(step int) {
-	w.stepCache = append(w.stepCache, step)
-}
-
-//
-//func (t *team)
-
-func (w *walker) beginning() string {
-	return w.firstPos
-}
-
-func (t *team) beginning() string {
-	builder := strings.Builder{}
-	for _, a := range t.as {
-		builder.WriteString(a.beginning())
-		builder.WriteByte(' ')
+func (w *walker) cachedPositions(upTo int) []int {
+	cache := make([]int, 0)
+	cache = w.stepCache
+	if upTo >= cache[len(cache)-1] {
+		return cache
 	}
-	return builder.String()
+	for i, fromCache := range cache {
+		if fromCache == upTo {
+			return cache[:i]
+		} else if fromCache > upTo {
+			return cache[:i-1]
+		}
+	}
+	return w.stepCache
+}
+
+func (t *team) cachedPositions(upTo int) []int {
+	//return lastCachedMultipletUpTo(upTo)
+	return nil
+}
+
+//func (t *team) lastCachedMultipletUpTo(upTo int) []int {
+//	for i, a := range t.as {
+//		aCache := a.cachedPositions(upTo)
+//		aCache
+//	}
+//	return t.cache
+//}
+
+func (w *walker) updateCache(step int) {
+	if w.cachePredicate(w.pos) || len(w.stepCache) <= 100 {
+		w.stepCache = append(w.stepCache, step)
+		return
+	}
+	return
 }
 
 func (w *walker) visualize(step int) {
@@ -148,7 +166,7 @@ func (t *team) visualize(step int) {
 	return
 }
 
-func (w *walker) containsFunc(f func(id string) bool) bool {
+func (w *walker) isAt(f func(position string) bool) bool {
 	return f(w.pos)
 }
 
@@ -163,9 +181,9 @@ func (w *walker) string() string {
 	return w.pos
 }
 
-func (t *team) containsFunc(f func(id string) bool) bool {
+func (t *team) isAt(f func(position string) bool) bool {
 	for _, a := range t.as {
-		if a.containsFunc(f) {
+		if a.isAt(f) {
 			return true
 		}
 	}

@@ -6,10 +6,16 @@ import (
 )
 
 func walkerVisualizer(writer io.Writer) func(w *walker, step int) {
-	cachedSteps := make([]int, 0)
-
 	return func(w *walker, step int) {
-		if w.containsFunc(stringEndsInZ) && len(cachedSteps) < 100 {
+		w.updateCache(step)
+		pterm.Fprinto(writer, pterm.Sprintf("%s\t%s\t%v", w.pos, w.firstPos, firstFiveElementsIfPresent(w.stepCache)))
+	}
+}
+
+func walkerVisualizerWithEmbeddedCache(writer io.Writer) func(w *walker, step int) {
+	cachedSteps := make([]int, 0)
+	return func(w *walker, step int) {
+		if w.isAt(stringEndsInZ) && len(cachedSteps) < 100 {
 			cachedSteps = append(cachedSteps, step)
 		}
 		pterm.Fprinto(writer, pterm.Sprintf("%s\t%s\t%v", w.pos, w.firstPos, firstFiveElementsIfPresent(cachedSteps)))
@@ -28,10 +34,12 @@ func arrayDisplayLimit(arr []int) int {
 	return limit
 }
 
-func teamVisualizer(writer io.Writer) func(t *team, step int) {
+func teamVisualizer(writer ...io.Writer) func(t *team, step int) {
 	return func(t *team, step int) {
-		pterm.Fprinto(writer, pterm.Sprintf("Current\tStart\t%d", step))
+		pterm.Fprinto(writer[0], pterm.Sprintf("Current\tStart\t%d", step))
+		//lcm := 1
 		for _, a := range t.as {
+			//lcm = Lcm(a.)
 			a.visualize(step)
 		}
 		return

@@ -7,7 +7,7 @@ import (
 
 func applyLeftRightTurnsOnStartingState(leftTurnOperator, rightTurnOperator Matrix, leftRightTurns []int) {
 	multiPrinter := pterm.DefaultMultiPrinter
-	multiPrinter.UpdateDelay = time.Millisecond * 100
+	multiPrinter.UpdateDelay = time.Millisecond * 200
 	t := initializeTeamOfWalkersAtStartingNodes(leftTurnOperator, &multiPrinter)
 	multiPrinter.Start()
 	By{
@@ -51,12 +51,13 @@ func initializeTeamOfWalkersAtStartingNodes(leftTurnOperator Matrix, multi *pter
 	for _, sn := range startingNodes {
 		writer := (*multi).NewWriter()
 		w := walker{
-			pos:        sn,
-			firstPos:   sn,
-			visualizer: walkerVisualizer(writer),
+			pos:            sn,
+			firstPos:       sn,
+			visualizer:     walkerVisualizerWithEmbeddedCache(writer),
+			cachePredicate: func(pos string) bool { return stringEndsInZ(pos) },
 		}
 		startingWalker = append(startingWalker, adjacency(&w))
 	}
-	t := team{startingWalker, teamVisualizer(teamWriter)}
+	t := newTeam(startingWalker, teamVisualizer(teamWriter))
 	return adjacency(&t)
 }

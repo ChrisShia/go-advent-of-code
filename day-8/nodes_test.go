@@ -91,7 +91,7 @@ func Test_ContainsFunc_ContainsNodeEndingInZ(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ans := tt.state.containsFunc(stringEndsInZ)
+			ans := tt.state.isAt(stringEndsInZ)
 			if ans != tt.want {
 				t.Errorf("got %v, want %v", ans, tt.want)
 			}
@@ -99,7 +99,49 @@ func Test_ContainsFunc_ContainsNodeEndingInZ(t *testing.T) {
 	}
 }
 
-func setOfAdjacencies() []adjacency {
+//func Test_TeamUpdateCachePositions(t *testing.T) {
+//	tm := walkersWithCachedPositions()
+//	var tests = []struct {
+//		name string
+//		t    team
+//		want []int
+//	}{
+//		{"", walkersWithCachedPositions(), []int{2, 4, 6}},
+//	}
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			ans := tt.t.cache
+//			if !equal(ans, tt.want) {
+//				t.Errorf("got %v, want %v", ans, tt.want)
+//			}
+//		})
+//	}
+//}
+
+func equal(t1 []int, t2 []int) bool {
+	for i := range t1 {
+		if t1[i] != t2[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func walkersWithCachedPositions() team {
+	as := make([]adjacency, 0)
+	VBN, QGZ, KJZ := newWalkerAndCache("VBN", []int{1, 2}), newWalkerAndCache("QGZ", []int{3, 4}), newWalkerAndCache("KJZ", []int{5, 6})
+	as = append(as, adjacency(&VBN))
+	as = append(as, adjacency(&QGZ))
+	as = append(as, adjacency(&KJZ))
+	t := team{as, nil, nil}
+	return t
+}
+
+func newWalkerAndCache(pos string, cached []int) walker {
+	return walker{pos: pos, stepCache: cached}
+}
+
+func adjacencySet() []adjacency {
 	VBN, QGZ, KJZ, LPK, MHB, JHD := newW("VBN"), newW("QGZ"), newW("KJZ"), newW("LPK"), newW("MHB"), newW("JHD")
 	adjacencySlice := make([]adjacency, 0)
 	adjacencySlice = append(adjacencySlice, adjacency(createCustomNodeState(VBN, QGZ, KJZ, LPK, MHB)))
