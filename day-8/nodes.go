@@ -2,7 +2,7 @@ package main
 
 import (
 	"go-advent-of-code/utils"
-	"go-advent-of-code/utils/math"
+	"go-advent-of-code/utils/maths"
 	"strings"
 )
 
@@ -71,7 +71,7 @@ func (p path) step(i int) int {
 	if i < len(p) {
 		return p[i]
 	}
-	return p[math.Mod(i, len(p))]
+	return p[maths.Mod(i, len(p))]
 }
 
 type adjacency interface {
