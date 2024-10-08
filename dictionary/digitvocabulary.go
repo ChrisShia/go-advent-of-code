@@ -104,13 +104,21 @@ func ByteToInt(byte byte) int {
 }
 
 func BytesToInt(bs []byte) int {
-	var number int
-	orderOfNumber := len(bs) - 1
-	parse := byteParser(orderOfNumber)
-	for _, b := range bs {
-		number = parse(b)
+	number := 0
+	slice := bs
+	order := len(bs) - 1
+	sign := 1
+	if bs[0] == '-' {
+		sign = -1
+		slice = bs[1:]
+		order--
 	}
-	return number
+	for _, b := range slice {
+		toInt := ByteToInt(b)
+		number += int(math.Pow10(order)) * toInt
+		order--
+	}
+	return sign * number
 }
 
 func ConcatenateInts(ints []int) int {
@@ -121,16 +129,6 @@ func ConcatenateInts(ints []int) int {
 		number = parse(b)
 	}
 	return number
-}
-
-func byteParser(order int) func(b byte) int {
-	sum := 0
-	return func(b byte) int {
-		toInt := ByteToInt(b)
-		sum += int(math.Pow10(order)) * toInt
-		order--
-		return sum
-	}
 }
 
 func intParser(order int) func(i int) int {

@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestDigit_Byte(t *testing.T) {
+func Test_DigitByte(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input Digit
@@ -25,7 +25,7 @@ func TestDigit_Byte(t *testing.T) {
 	}
 }
 
-func TestByteToNumerical(t *testing.T) {
+func Test_ByteToNumerical(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input byte
@@ -46,7 +46,7 @@ func TestByteToNumerical(t *testing.T) {
 	}
 }
 
-func TestString(t *testing.T) {
+func Test_String(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input Digit
@@ -73,7 +73,7 @@ func TestString(t *testing.T) {
 	}
 }
 
-func TestWordToDigitMapper(t *testing.T) {
+func Test_WordToDigitMapper(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input []byte
@@ -93,6 +93,26 @@ func TestWordToDigitMapper(t *testing.T) {
 			}
 			if ans != tt.want {
 				t.Errorf("got %s, want %s", ans, tt.want)
+			}
+		})
+	}
+}
+
+func Test_BytesToIntParser(t *testing.T) {
+	var tests = []struct {
+		name  string
+		input []byte
+		want  int
+	}{
+		{"parse 1", []byte("1"), 1},
+		{"parse -3", []byte("-3"), -3},
+		{"parse -23467", []byte("-23467"), -23467},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ans := BytesToInt(tt.input)
+			if ans != tt.want {
+				t.Errorf("got %d, want %d", ans, tt.want)
 			}
 		})
 	}
