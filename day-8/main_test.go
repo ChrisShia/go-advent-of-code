@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
+	"go-advent-of-code/utils/maths"
 	"testing"
 )
 
 func Test_Multiply(t *testing.T) {
 	left, right := createAdjacencyMatrices()
-	leftRight := left.multiply(right)
-	rightLeft := right.multiply(left)
-	fmt.Println(leftRight.adjacencyMap)
-	fmt.Println(rightLeft.adjacencyMap)
+	leftRight := left.Multiply(right)
+	rightLeft := right.Multiply(left)
+	fmt.Println(leftRight.AdjacencyMap)
+	fmt.Println(rightLeft.AdjacencyMap)
 }
 
 func Test_ProgressWalker(t *testing.T) {
@@ -18,7 +19,7 @@ func Test_ProgressWalker(t *testing.T) {
 	var tests = []struct {
 		name                string
 		nodeToBeTransformed walker
-		operator            Matrix
+		operator            maths.Matrix
 		want                walker
 	}{
 		{"turn walker AAA by left op", newW("AAA"), left, newW("BBB")},
@@ -27,7 +28,8 @@ func Test_ProgressWalker(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ans := tt.operator.transform(&tt.nodeToBeTransformed)
+			tt.nodeToBeTransformed.transformBy(tt.operator)
+			ans := tt.nodeToBeTransformed
 			if ans.string() != tt.want.string() {
 				t.Errorf("got %v, want %v", ans, tt.want)
 			}
@@ -181,16 +183,16 @@ func createNodeState() team {
 	return newT(adjSlice)
 }
 
-func createAdjacencyMatrices() (Matrix, Matrix) {
+func createAdjacencyMatrices() (maths.Matrix, maths.Matrix) {
 	input := [][]string{{"AAA", "BBB", "BBB"}, {"BBB", "AAA", "ZZZ"}, {"ZZZ", "ZZZ", "ZZZ"}}
 	orderedKeys := make([]string, 0)
-	leftOrderedMap := newOrderedMap(&orderedKeys)
-	rightOrderedMap := newOrderedMap(&orderedKeys)
+	leftOrderedMap := maths.NewOrderedMap(&orderedKeys)
+	rightOrderedMap := maths.NewOrderedMap(&orderedKeys)
 	nodeSetter := nodesFromInputSetter[string](leftOrderedMap, rightOrderedMap, func(input string) string { return input })
 	for _, adjacency := range input {
 		nodeSetter(adjacency)
 	}
-	leftMatrix := Matrix{leftOrderedMap}
-	rightMatrix := Matrix{rightOrderedMap}
+	leftMatrix := maths.Matrix{OrderedMap: leftOrderedMap}
+	rightMatrix := maths.Matrix{OrderedMap: rightOrderedMap}
 	return leftMatrix, rightMatrix
 }

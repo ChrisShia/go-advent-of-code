@@ -11,7 +11,6 @@ import (
 	"log"
 	"math"
 	"os"
-	"reflect"
 	"slices"
 )
 
@@ -88,19 +87,6 @@ func closeFile(file *os.File) {
 
 		}
 	}(file)
-}
-
-func Call(funcName string, params ...interface{}) {
-	f := reflect.ValueOf(destinationToSourceFuncMap[funcName])
-	//if len(params) != f.Type().NumIn() {
-	//	err = errors.New("The number of params is out of index.")
-	//	return
-	//}
-	in := make([]reflect.Value, len(params))
-	for k, param := range params {
-		in[k] = reflect.ValueOf(param)
-	}
-	f.Call(in)
 }
 
 func scanFirstLineAndAppendToIdsSlice(line []byte) {

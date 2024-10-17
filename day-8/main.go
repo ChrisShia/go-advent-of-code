@@ -19,7 +19,7 @@ func main() {
 	applyLeftRightTurnsOnStartingState(leftTurnOperator, rightTurnOperator, leftRightTurns_)
 }
 
-func applyLeftRightTurnsOnStartingNode(leftTurnOperator, rightTurnOperator Matrix, startingNodeId string, leftRightTurns []int) (int, adjacency) {
+func applyLeftRightTurnsOnStartingNode(leftTurnOperator, rightTurnOperator maths.Matrix, startingNodeId string, leftRightTurns []int) (int, adjacency) {
 	w := walker{pos: startingNodeId, firstPos: startingNodeId, visualizer: nil}
 	return By{leftRightTransformFunc(leftTurnOperator, rightTurnOperator),
 		func(nodeId string) bool {
@@ -47,7 +47,7 @@ func stringEndsInZ(s string) bool {
 }
 
 type By struct {
-	turn         func(leftOrRight int, nodeId adjacency) adjacency
+	turn         func(leftOrRight int, nodeId adjacency)
 	keepCounting func(inputId string) bool
 	startingFrom adjacency
 }
@@ -57,7 +57,7 @@ func (by By) apply(path path) (int, adjacency) {
 	iteration, step := 0, 0
 	for !a.isEnd(by.keepCounting) {
 		leftOrRight := path.step(iteration)
-		a = by.turn(leftOrRight, a)
+		by.turn(leftOrRight, a)
 		step = iteration + 1
 		a.visualize(step)
 		iteration++
@@ -75,7 +75,7 @@ func (p path) step(i int) int {
 }
 
 type adjacency interface {
-	progress(m Matrix)
+	progress(m maths.Matrix)
 	string() string
 	isEnd(func(position string) bool) bool
 	isAt(func(position string) bool) bool
@@ -210,105 +210,19 @@ func (t *team) string() string {
 	return stringBuilder.String()
 }
 
-func (t *team) progress(m Matrix) {
+func (t *team) progress(m maths.Matrix) {
 	for index := range t.as {
 		(t.as)[index].progress(m)
 	}
 	return
 }
 
-func (w *walker) progress(m Matrix) {
-	adjacencyOfNode := m.adjacencyMap[w.pos]
-	w.pos = (*m.orderedKeys)[adjacencyOfNode-1]
+func (w *walker) progress(m maths.Matrix) {
+	w.transformBy(m)
 	return
 }
 
-type Matrix struct {
-	*OrderedMap
-}
-
-func (m Matrix) transform(adj adjacency) adjacency {
-	adj.progress(m)
-	return adj
-}
-
-func (m Matrix) multiply(o Matrix) Matrix {
-	orderedKeys := *m.orderedKeys
-	resAdjacencyMap := make(map[string]int)
-	productMap := OrderedMap{resAdjacencyMap, &orderedKeys}
-	for i := range orderedKeys {
-		rowSlice := m.row(i + 1)
-		for _, key := range orderedKeys {
-			columnNonZeroElement := o.adjacencyMap[key]
-			ijElement := rowSlice[columnNonZeroElement-1]
-			if ijElement == 0 {
-				continue
-			}
-			resAdjacencyMap[key] = i + 1
-		}
-	}
-	matrix := Matrix{&productMap}
-	return matrix
-}
-
-func (m Matrix) row(rowIndex int) []int {
-	orderedKeys := *m.orderedKeys
-	var r = make([]int, 0)
-	for _, nodeId := range orderedKeys {
-		nodeAdjacency := m.adjacencyMap[nodeId]
-		if rowIndex == nodeAdjacency {
-			r = append(r, 1)
-		} else {
-			r = append(r, 0)
-		}
-	}
-	return r
-}
-
-func (m Matrix) column(colIndex int) []int {
-	orderedKeys := *m.orderedKeys
-	var col = make([]int, 0)
-	nodeId := orderedKeys[colIndex]
-	adj := m.adjacencyMap[nodeId]
-	for k := range orderedKeys {
-		if adj == k+1 {
-			col = append(col, 1)
-		} else {
-			col = append(col, 0)
-		}
-	}
-	return col
-}
-
-type OrderedMap struct {
-	adjacencyMap map[string]int
-	orderedKeys  *[]string
-}
-
-func newOrderedMap(orderedKeys *[]string) *OrderedMap {
-	return &OrderedMap{make(map[string]int), orderedKeys}
-}
-
-func (om *OrderedMap) getOrder(key string) int {
-	for k, v := range *om.orderedKeys {
-		if v == key {
-			return k + 1
-		}
-	}
-	return -1
-}
-
-func (om *OrderedMap) addSingleAdjacencyForNode(nodeId string, adjNodeId string) {
-	if len(nodeId) == 0 || len(adjNodeId) == 0 {
-		return
-	}
-	nodeOrder := om.getOrder(nodeId)
-	adjNodeOrder := om.getOrder(adjNodeId)
-	if nodeOrder == -1 {
-		*om.orderedKeys = append(*om.orderedKeys, nodeId)
-	}
-	if adjNodeId != nodeId && adjNodeOrder == -1 {
-		*om.orderedKeys = append(*om.orderedKeys, adjNodeId)
-	}
-	om.adjacencyMap[nodeId] = om.getOrder(adjNodeId)
+func (w *walker) transformBy(m maths.Matrix) {
+	adjacencyOfNode := m.AdjacencyMap[w.pos]
+	w.pos = (*m.OrderedKeys)[adjacencyOfNode-1]
 }

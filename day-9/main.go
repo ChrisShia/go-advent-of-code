@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"go-advent-of-code/utils"
 	"go-advent-of-code/utils/maths"
 	"math"
 	"strconv"
@@ -15,9 +17,13 @@ var sequences_ []*intSequence
 
 func main() {
 	sequences_ = make([]*intSequence, 0)
-	read(inputPath_, lineFieldProcessor())
+	readInput()
 	partA()
 	partB()
+}
+
+func readInput() {
+	utils.Read(inputPath_, nil, func(line []byte) [][]byte { return bytes.Fields(line) }, nil, dayNineLineProcessor)
 }
 
 func partA() {

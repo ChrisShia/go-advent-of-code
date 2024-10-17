@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"go-advent-of-code/utils/maths"
 	"os"
 )
 
@@ -49,7 +50,7 @@ func binaryRepresentationOfLeftRight(line []byte) []int {
 	return binarySequenceOfTurns
 }
 
-func nodesFromInputSetter[T any](leftOrderedMap, rightOrderedMap *OrderedMap, stringer func(T) string) func(input []T) {
+func nodesFromInputSetter[T any](leftOrderedMap, rightOrderedMap *maths.OrderedMap, stringer func(T) string) func(input []T) {
 	return func(input []T) {
 		//nodeId := fmt.Sprintf("%v", input[0])
 		nodeId := stringer(input[0])
@@ -57,8 +58,8 @@ func nodesFromInputSetter[T any](leftOrderedMap, rightOrderedMap *OrderedMap, st
 		leftAdjNodeId := stringer(input[1])
 		//rightAdjNodeId := fmt.Sprintf("%v", input[2])
 		rightAdjNodeId := stringer(input[2])
-		leftOrderedMap.addSingleAdjacencyForNode(nodeId, leftAdjNodeId)
-		rightOrderedMap.addSingleAdjacencyForNode(nodeId, rightAdjNodeId)
+		leftOrderedMap.AddSingleAdjacencyForNode(nodeId, leftAdjNodeId)
+		rightOrderedMap.AddSingleAdjacencyForNode(nodeId, rightAdjNodeId)
 	}
 }
 
@@ -68,13 +69,13 @@ func isExcludedCharacter() func(r rune) bool {
 	}
 }
 
-func createLeftRightOperators(file *os.File) (Matrix, Matrix) {
+func createLeftRightOperators(file *os.File) (maths.Matrix, maths.Matrix) {
 	orderedKeys := make([]string, 0)
-	leftOrderedMap := newOrderedMap(&orderedKeys)
-	rightOrderedMap := newOrderedMap(&orderedKeys)
+	leftOrderedMap := maths.NewOrderedMap(&orderedKeys)
+	rightOrderedMap := maths.NewOrderedMap(&orderedKeys)
 	nodeSetter := nodesFromInputSetter[[]byte](leftOrderedMap, rightOrderedMap, func(input []byte) string { return string(input) })
 	populateLeftRightAdjacencyMatrices(file, nodeSetter)
-	leftTurnOperator := Matrix{leftOrderedMap}
-	rightTurnOperator := Matrix{rightOrderedMap}
+	leftTurnOperator := maths.Matrix{OrderedMap: leftOrderedMap}
+	rightTurnOperator := maths.Matrix{OrderedMap: rightOrderedMap}
 	return leftTurnOperator, rightTurnOperator
 }

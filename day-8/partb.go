@@ -2,10 +2,11 @@ package main
 
 import (
 	"github.com/pterm/pterm"
+	"go-advent-of-code/utils/maths"
 	"time"
 )
 
-func applyLeftRightTurnsOnStartingState(leftTurnOperator, rightTurnOperator Matrix, leftRightTurns []int) {
+func applyLeftRightTurnsOnStartingState(leftTurnOperator, rightTurnOperator maths.Matrix, leftRightTurns []int) {
 	multiPrinter := pterm.DefaultMultiPrinter
 	multiPrinter.UpdateDelay = time.Millisecond * 200
 	t := initializeTeamOfWalkersAtStartingNodes(leftTurnOperator, &multiPrinter)
@@ -27,21 +28,23 @@ func keepCountingIfNodeEndsInZFunc() func(nodeId string) bool {
 	}
 }
 
-func leftRightTransformFunc(leftTurnOperator Matrix, rightTurnOperator Matrix) func(leftOrRight int, node adjacency) adjacency {
-	return func(leftOrRight int, node adjacency) adjacency {
+func leftRightTransformFunc(leftTurnOperator maths.Matrix, rightTurnOperator maths.Matrix) func(leftOrRight int, node adjacency) {
+	return func(leftOrRight int, node adjacency) {
 		if leftOrRight == 0 {
-			return leftTurnOperator.transform(node)
+			node.progress(leftTurnOperator)
+			return
 		}
 		if leftOrRight == 1 {
-			return rightTurnOperator.transform(node)
+			node.progress(rightTurnOperator)
+			return
 		}
-		return node
+		return
 	}
 }
 
-func initializeTeamOfWalkersAtStartingNodes(leftTurnOperator Matrix, multi *pterm.MultiPrinter) adjacency {
+func initializeTeamOfWalkersAtStartingNodes(leftTurnOperator maths.Matrix, multi *pterm.MultiPrinter) adjacency {
 	startingNodes := make([]string, 0)
-	for _, nodeId := range *leftTurnOperator.orderedKeys {
+	for _, nodeId := range *leftTurnOperator.OrderedKeys {
 		if isStartingNode(nodeId) {
 			startingNodes = append(startingNodes, nodeId)
 		}

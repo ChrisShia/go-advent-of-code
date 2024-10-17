@@ -90,6 +90,26 @@ func Test_Lcm(t *testing.T) {
 	}
 }
 
+func Test_Mod(t *testing.T) {
+	var tests = []struct {
+		name     string
+		i, j     int
+		expected int
+	}{
+		{"", 10, 2, 0},
+		{"", 10, 3, 1},
+		{"", -4, 3, -1},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ans := Mod(tt.i, tt.j)
+			if ans != tt.expected {
+				t.Errorf("got %v, want %v", ans, tt.expected)
+			}
+		})
+	}
+}
+
 func Test_PowOfTwo(t *testing.T) {
 	var tests = []struct {
 		name     string
