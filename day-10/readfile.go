@@ -1,12 +1,12 @@
 package main
 
-import "go-advent-of-code/utils/maths"
+import maths "github.com/ChrisShia/math-depot"
 
 const indexOutOfGridBounds = -1
 const one = 1
 
 var atLastLine_ bool
-var animal1dGridPosition_ = -1
+var startingPosition_ = -1
 var pipeShapesCount_ = 0
 var linesReadCount_ = 0
 
@@ -42,14 +42,13 @@ func pipesTo(pipeShape byte, referenceIndex int) (int, int) {
 	case SouthEastPipe:
 		return pipe(referenceIndex, east), pipe(referenceIndex, south)
 	case S:
-		animal1dGridPosition_ = referenceIndex
+		startingPosition_ = referenceIndex
 		return referenceIndex, referenceIndex
 	case Dot:
 		return referenceIndex, referenceIndex
 	default:
 		return referenceIndex, referenceIndex
 	}
-	return indexOutOfGridBounds, indexOutOfGridBounds
 }
 
 func atFirstLineOfGrid() bool {
