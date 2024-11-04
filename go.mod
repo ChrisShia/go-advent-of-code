@@ -2,7 +2,10 @@ module go-advent-of-code
 
 go 1.21.4
 
-require github.com/pterm/pterm v0.12.79
+require (
+	github.com/ChrisShia/math-depot v0.0.0-20241030131007-22da79755ba8
+	github.com/pterm/pterm v0.12.79
+)
 
 require (
 	atomicgo.dev/cursor v0.2.0 // indirect

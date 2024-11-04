@@ -3,8 +3,8 @@ package main
 import (
 	"bytes"
 	"fmt"
+	maths "github.com/ChrisShia/math-depot"
 	"go-advent-of-code/utils"
-	"go-advent-of-code/utils/maths"
 	"math"
 	"strconv"
 )

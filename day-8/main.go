@@ -1,8 +1,8 @@
 package main
 
 import (
+	maths "github.com/ChrisShia/math-depot"
 	"go-advent-of-code/utils"
-	"go-advent-of-code/utils/maths"
 	"strings"
 )
 

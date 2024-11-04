@@ -1,8 +1,8 @@
 package main
 
 import (
+	maths "github.com/ChrisShia/math-depot"
 	"github.com/pterm/pterm"
-	"go-advent-of-code/utils/maths"
 	"time"
 )
 

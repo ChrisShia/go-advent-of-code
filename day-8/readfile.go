@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"go-advent-of-code/utils/maths"
+	maths "github.com/ChrisShia/math-depot"
 	"os"
 )
 
