@@ -1,13 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"go-advent-of-code/dictionary"
-	"log"
+	"go-advent-of-code/utils"
 	"math"
-	"os"
 )
 
 // Answer a: 131376
@@ -46,30 +44,15 @@ func determinant(t int, d int) float64 {
 }
 
 func extractTimesAndDistances() ([][]byte, [][]byte) {
-	file := openFile()
-	defer closeFile(file)
-	scanner := bufio.NewScanner(file)
-	scanner.Scan()
-	_, times, _ := bytes.Cut(scanner.Bytes(), []byte("Time: "))
-	scanner.Scan()
-	_, distances, _ := bytes.Cut(scanner.Bytes(), []byte("Distance: "))
+	file := utils.OpenFileLogFatal(inputPath_)
+	defer utils.CloseFile(file)
+	timeDistance := utils.FindLinesContainingByteSequences(file, []byte("Time"), []byte("Distance"))
+	//scanner := bufio.NewScanner(file)
+	//scanner.Scan()
+	//_, times, _ := bytes.Cut(scanner.Bytes(), []byte("Time: "))
+	//scanner.Scan()
+	//_, distances, _ := bytes.Cut(scanner.Bytes(), []byte("Distance: "))
 	timeByteSlice := bytes.Fields(times)
 	distByteSlice := bytes.Fields(distances)
 	return timeByteSlice, distByteSlice
-}
-
-func openFile() *os.File {
-	file, err := os.Open(inputPath_)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return file
-}
-
-func closeFile(file *os.File) {
-	func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-		}
-	}(file)
 }
