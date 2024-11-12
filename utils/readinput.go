@@ -3,7 +3,6 @@ package utils
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"os"
 )
 
@@ -80,52 +79,63 @@ func IsExcludedCharacter(allExcludedChars []byte) func(r rune) bool {
 	}
 }
 
-func FindLinesContainingByteSequences(file *os.File, bs ...[]byte) {
-	//fanIn := make(chan searchResult)
-	scanner := bufio.NewScanner(file)
-	resultChannels := make([]chan searchResult, 0)
-	for scanner.Scan() {
-		lineResult := make(chan searchResult)
-		resultChannels = append(resultChannels, lineResult)
-		go find(scanner.Bytes(), &bs, lineResult)
+type SearchResult interface {
+}
+
+func FindLinesContainingByteSequences(file *os.File, bs ...[]byte) []*indexSearchResult {
+	fanIn := make(chan *indexSearchResult)
+	searchResults := make([]*indexSearchResult, 0)
+	resultChannels := fanOutFinders(file, bs)
+	go fanInResults(resultChannels, fanIn)
+	for result := range fanIn {
+		searchResults = append(searchResults, result)
 	}
-	//var wg sync.WaitGroup
+	return searchResults
+}
+
+type ResultPool struct {
+	results []*indexSearchResult
+}
+
+func fanOutFinders(file *os.File, bs [][]byte) []chan *indexSearchResult {
+	resultChannels := make([]chan *indexSearchResult, 0)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lineResult := make(chan *indexSearchResult)
+		resultChannels = append(resultChannels, lineResult)
+		go findFirstInstances(scanner.Bytes(), &bs, lineResult)
+	}
+	return resultChannels
+}
+
+func fanInResults(resultChannels []chan *indexSearchResult, fanIn chan<- *indexSearchResult) {
 	for _, result := range resultChannels {
 		for r := range result {
-			fmt.Println(r)
+			fanIn <- r
 		}
-		//go func() {
-		//	wg.Add(1)
-		//	for r := range result {
-		//		fanIn <- r
-		//	}
-		//	wg.Done()
-		//}()
 	}
-	//res := make([]searchResult, 0)
-	//for r := range fanIn {
-	//	res = append(res, r)
-	//}
-	//wg.Wait()
-	//close(fanIn)
-	//return res
+	close(fanIn)
 }
 
-type searchResult struct {
-	s      []byte
-	result map[int][]int
+type indexSearchResult [T]struct {
+	search []byte
+	result map[int]T
 }
 
-func find(input []byte, byteSequences *[][]byte, result chan<- searchResult) {
-	if res, ok := Indices(input, byteSequences); ok {
+func findFirstInstances(input []byte, byteSequences *[][]byte, result chan<- *indexSearchResult) {
+	if res, ok := IndicesOfFirstInstances(input, byteSequences); ok {
 		result <- res
 	}
 	close(result)
 }
 
-func Indices(input []byte, byteSequences *[][]byte) (searchResult, bool) {
+func IndicesOfFirstInstances(input []byte, byteSequences *[][]byte) (*indexSearchResult, bool) {
 	mp, ok := Find(input).FirstInstances(byteSequences)
-	return searchResult{input, mp}, ok
+	return newSearchResult(input, mp), ok
+}
+
+func newSearchResult(input []byte, mp map[int][]int) *indexSearchResult {
+	return &indexSearchResult{input, mp}
 }
 
 type Find []byte

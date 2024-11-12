@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -42,23 +43,22 @@ func TestFindLinesOfFileContainingSequences(t *testing.T) {
 		inputFilePath string
 		identifiers   [][]byte
 	}{
-		{"test file", "/Users/christos/Practise-code/Go/go-advent/input/test/scaninput_test.txt", identifiers},
+		{"test file", "readinput_test.txt", identifiers},
 		//{"test file", "input/test/scaninput_test.txt", identifiers},
 	}
 	for _, tt := range tests {
 		file := OpenFileLogFatal(tt.inputFilePath)
-		FindLinesContainingByteSequences(file, tt.identifiers...)
-		//result := FindLinesContainingByteSequences(file, tt.identifiers...)
+		results := FindLinesContainingByteSequences(file, tt.identifiers...)
 		CloseFile(file)
 		t.Run(tt.name, func(t *testing.T) {
-			//fmt.Println(result)
-			//for i, m := range result {
-			//for j, e := range m {
-			//	if e != tt.expectedMap[i][j] {
-			//		t.Errorf("got %v, want %v for identifier %s", e, tt.expectedMap[i][j], tt.identifiers[i])
-			//	}
-			//}
-			//}
+			for _, sr := range results {
+				for i, e := range sr.result {
+					fmt.Println(i, e)
+					//if e != tt.expectedMap[i][j] {
+					//	t.Errorf("got %v, want %v for identifier %s", e, tt.expectedMap[i][j], tt.identifiers[i])
+					//}
+				}
+			}
 		})
 	}
 }
