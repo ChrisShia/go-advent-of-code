@@ -117,9 +117,9 @@ func fanInResults(resultChannels []chan *indexSearchResult, fanIn chan<- *indexS
 	close(fanIn)
 }
 
-type indexSearchResult [T]struct {
+type indexSearchResult struct {
 	search []byte
-	result map[int]T
+	result map[int][]int
 }
 
 func findFirstInstances(input []byte, byteSequences *[][]byte, result chan<- *indexSearchResult) {
@@ -151,16 +151,20 @@ func IndexOfFirstInstance(b []byte, identifiers *[][]byte) (map[int][]int, bool)
 	for k, sep := range *identifiers {
 		index := bytes.Index(b, sep)
 		if index != -1 {
-			indices := presentIdentifiers[k]
-			if indices == nil {
-				indices = make([]int, 0)
-			}
-			indices = append(indices, index)
-			presentIdentifiers[k] = indices
+			appendElementToKListOfMap(presentIdentifiers, k, index)
 		}
 	}
 	if len(presentIdentifiers) == 0 {
 		return nil, nothingFound
 	}
 	return presentIdentifiers, found
+}
+
+func appendElementToKListOfMap(m map[int][]int, k int, element int) {
+	list := m[k]
+	if list == nil {
+		list = make([]int, 0)
+	}
+	list = append(list, element)
+	m[k] = list
 }
