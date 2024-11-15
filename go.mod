@@ -5,6 +5,7 @@ go 1.21.4
 require (
 	github.com/ChrisShia/math-depot v0.0.0-20241030131007-22da79755ba8
 	github.com/pterm/pterm v0.12.79
+	golang.org/x/exp v0.0.0-20220909182711-5c715a9e8561
 )
 
 require (
