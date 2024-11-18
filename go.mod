@@ -1,6 +1,8 @@
 module go-advent-of-code
 
-go 1.21.4
+go 1.22.0
+
+toolchain go1.22.9
 
 require (
 	github.com/ChrisShia/math-depot v0.0.0-20241030131007-22da79755ba8
@@ -12,6 +14,7 @@ require (
 	atomicgo.dev/cursor v0.2.0 // indirect
 	atomicgo.dev/keyboard v0.2.9 // indirect
 	atomicgo.dev/schedule v0.1.0 // indirect
+	github.com/ChrisShia/goread v0.0.0-20241118050508-c5bf3971a7a1 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/gookit/color v1.5.4 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect

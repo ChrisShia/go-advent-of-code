@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/ChrisShia/goread/read"
 	"go-advent-of-code/dictionary"
 	"go-advent-of-code/utils"
 	"math"
@@ -44,34 +45,40 @@ func determinant(t int, d int) float64 {
 func extractTimesAndDistances() ([]int, []int) {
 	file := utils.OpenFileLogFatal(inputPath_)
 	defer utils.CloseFile(file)
-	timeSeq := utils.BSeq("Time")
+	timeSeq := read.BSeq("Time")
 	times, extractTimes := newExtractor(timeSeq)
-	distanceWord := utils.BSeq("Distance")
+	distanceWord := read.BSeq("Distance")
 	distances, extractDistance := newExtractor(distanceWord)
-	resultPool := utils.FindLinesContainingByteSequences(file, timeSeq, distanceWord)
+	resultPool := read.FindLinesContainingByteSequences(file, timeSeq, distanceWord)
 	extractTimes.From(resultPool)
 	extractDistance.From(resultPool)
 	return *times, *distances
 }
 
-func newExtractor(identifier utils.BSeq) (*[]int, utils.Extractor) {
+func newExtractor(identifier read.BSeq) (*[]int, read.Extractor) {
 	ints := make([]int, 0)
-	return &ints, func(pool *utils.SearchResultPool) {
+	return &ints, func(pool *read.SearchResultPool) {
 		index, _ := pool.SearchFor.Index(identifier)
 		for _, sr := range pool.Results {
 			if i, ok := sr.Result[index]; ok {
-				for _, indexInLine := range i {
-					dataField := sr.B[indexInLine+len(identifier):]
-					fields := bytes.Fields(dataField)
-					for _, field := range fields {
-						if value, onlyNumerical := toInt(field); onlyNumerical {
-							ints = append(ints, value)
-						}
-					}
-				}
+				ints = append(ints, extractValuesFromSearchResult(i, sr.B, identifier)...)
 			}
 		}
 	}
+}
+
+func extractValuesFromSearchResult(inLineIndices []int, line []byte, identifier read.BSeq) []int {
+	extractedValues := make([]int, 0)
+	for _, indexInLine := range inLineIndices {
+		dataField := line[indexInLine+len(identifier):]
+		fields := bytes.Fields(dataField)
+		for _, field := range fields {
+			if value, onlyNumerical := toInt(field); onlyNumerical {
+				extractedValues = append(extractedValues, value)
+			}
+		}
+	}
+	return extractedValues
 }
 
 func toInt(field []byte) (int, bool) {
