@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"go-advent-of-code/utils"
+	"github.com/ChrisShia/goread/read"
 )
 
 //References : green's calculus theorem relating surface area and the line integral on its boundary.
@@ -14,7 +14,7 @@ var gridWidth_ int
 
 func main() {
 	oneDimensionalGrid_ = make([]*neighbourPair, 0)
-	utils.Read(inputPath_, nil, nil, nil, dayTenLineProcessor)
+	read.Read(inputPath_, nil, nil, nil, dayTenLineProcessor)
 	c := initializeCircuit()
 	var farthestPoint = traverseCircuitFromStartingPosition(c)
 	fmt.Println(farthestPoint)

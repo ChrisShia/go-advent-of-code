@@ -3,8 +3,8 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/ChrisShia/goread/read"
 	maths "github.com/ChrisShia/math-depot"
-	"go-advent-of-code/utils"
 	"math"
 	"strconv"
 )
@@ -23,7 +23,7 @@ func main() {
 }
 
 func readInput() {
-	utils.Read(inputPath_, nil, func(line []byte) [][]byte { return bytes.Fields(line) }, nil, dayNineLineProcessor)
+	read.Read(inputPath_, nil, func(line []byte) [][]byte { return bytes.Fields(line) }, nil, dayNineLineProcessor)
 }
 
 func partA() {
