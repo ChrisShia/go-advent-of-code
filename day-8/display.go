@@ -5,20 +5,13 @@ import (
 	"io"
 )
 
-func walkerVisualizer(writer io.Writer) func(w *walker, step int) {
-	return func(w *walker, step int) {
-		w.updateCache(step)
-		pterm.Fprinto(writer, pterm.Sprintf("%s\t%s\t%v", w.pos, w.firstPos, firstFiveElementsIfPresent(w.stepCache)))
-	}
-}
-
 func walkerVisualizerWithEmbeddedCache(writer io.Writer) func(w *walker, step int) {
 	cachedSteps := make([]int, 0)
 	return func(w *walker, step int) {
-		if w.isAt(stringEndsInZ) && len(cachedSteps) < 100 {
+		if w.isAtFunc(stringEndsInZ) && len(cachedSteps) < 100 {
 			cachedSteps = append(cachedSteps, step)
 		}
-		pterm.Fprinto(writer, pterm.Sprintf("%s\t%s\t%v", w.pos, w.firstPos, firstFiveElementsIfPresent(cachedSteps)))
+		pterm.Fprinto(writer, pterm.Sprintf("%s\t%s\t%v", w.position, w.firstPos, firstFiveElementsIfPresent(cachedSteps)))
 	}
 }
 

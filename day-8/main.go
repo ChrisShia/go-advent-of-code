@@ -20,7 +20,7 @@ func main() {
 }
 
 func applyLeftRightTurnsOnStartingNode(leftTurnOperator, rightTurnOperator maths.Matrix, startingNodeId string, leftRightTurns []int) (int, adjacency) {
-	w := walker{pos: startingNodeId, firstPos: startingNodeId, visualizer: nil}
+	w := walker{position: startingNodeId, firstPos: startingNodeId, visualizer: nil}
 	return By{leftRightTransformFunc(leftTurnOperator, rightTurnOperator),
 		func(nodeId string) bool {
 			if nodeId == "ZZZ" {
@@ -47,15 +47,15 @@ func stringEndsInZ(s string) bool {
 }
 
 type By struct {
-	turn         func(leftOrRight int, nodeId adjacency)
-	keepCounting func(inputId string) bool
-	startingFrom adjacency
+	turn           func(leftOrRight int, nodeId adjacency)
+	isEndPredicate func(inputId string) bool
+	startingFrom   adjacency
 }
 
 func (by By) apply(path path) (int, adjacency) {
 	a := by.startingFrom
 	iteration, step := 0, 0
-	for !a.isEnd(by.keepCounting) {
+	for !a.isEnd(by.isEndPredicate) {
 		leftOrRight := path.step(iteration)
 		by.turn(leftOrRight, a)
 		step = iteration + 1
@@ -78,25 +78,16 @@ type adjacency interface {
 	progress(m maths.Matrix)
 	string() string
 	isEnd(func(position string) bool) bool
-	isAt(func(position string) bool) bool
+	isAt(f func(position string) bool) bool
 	visualize(step int)
-	cachedPositions(upToStep int) []int
 }
 
 type walker struct {
-	pos            string
+	position       string
 	firstPos       string
 	visualizer     func(w *walker, step int)
 	stepCache      []int
 	cachePredicate func(pos string) bool
-}
-
-func newW(startPos string) walker {
-	return newWalker(startPos, nil)
-}
-
-func newWalker(startPos string, vis func(w *walker, step int)) walker {
-	return walker{pos: startPos, firstPos: startPos, visualizer: vis}
 }
 
 type team struct {
@@ -105,49 +96,20 @@ type team struct {
 	cache      []int
 }
 
-func newT(as []adjacency) team {
-	return newTeam(as, nil)
-}
-
 func newTeam(as []adjacency, vis func(t *team, step int)) team {
 	return team{as: as, visualizer: vis}
 }
 
-func (w *walker) cachedPositions(upTo int) []int {
-	cache := make([]int, 0)
-	cache = w.stepCache
-	if upTo >= cache[len(cache)-1] {
-		return cache
-	}
-	for i, fromCache := range cache {
-		if fromCache == upTo {
-			return cache[:i]
-		} else if fromCache > upTo {
-			return cache[:i-1]
-		}
-	}
-	return w.stepCache
-}
-
-func (t *team) cachedPositions(upTo int) []int {
-	//return lastCachedMultipletUpTo(upTo)
-	return nil
-}
-
-//func (t *team) lastCachedMultipletUpTo(upTo int) []int {
-//	for i, a := range t.as {
-//		aCache := a.cachedPositions(upTo)
-//		aCache
-//	}
-//	return t.cache
-//}
-
 func (w *walker) updateCache(step int) {
-	if w.cachePredicate(w.pos) || len(w.stepCache) <= 100 {
+	if w.cachePredicate(w.position) || len(w.stepCache) <= 100 {
 		w.stepCache = append(w.stepCache, step)
 		return
 	}
 	return
+}
+
+func (w *walker) isAtFunc(f func(position string) bool) bool {
+	return f(w.position)
 }
 
 func (w *walker) visualize(step int) {
@@ -166,21 +128,6 @@ func (t *team) visualize(step int) {
 	return
 }
 
-func (w *walker) isAt(f func(position string) bool) bool {
-	return f(w.pos)
-}
-
-func (w *walker) isEnd(keepCountingFunc func(id string) bool) bool {
-	if keepCountingFunc(w.pos) {
-		return false
-	}
-	return true
-}
-
-func (w *walker) string() string {
-	return w.pos
-}
-
 func (t *team) isAt(f func(position string) bool) bool {
 	for _, a := range t.as {
 		if a.isAt(f) {
@@ -190,11 +137,23 @@ func (t *team) isAt(f func(position string) bool) bool {
 	return false
 }
 
-func (t *team) isEnd(keepCountingFunc func(id string) bool) bool {
+func (w *walker) isAt(f func(position string) bool) bool {
+	return f(w.position)
+}
+
+func (w *walker) isEnd(isEndPredicateFunc func(id string) bool) bool {
+	return isEndPredicateFunc(w.position)
+}
+
+func (w *walker) string() string {
+	return w.position
+}
+
+func (t *team) isEnd(isEndPredicateFunc func(id string) bool) bool {
 	keepCounting := false
 	isEnd := true
 	for _, a := range t.as {
-		if keepCountingFunc(a.string()) {
+		if !isEndPredicateFunc(a.string()) {
 			return keepCounting
 		}
 	}
@@ -223,6 +182,6 @@ func (w *walker) progress(m maths.Matrix) {
 }
 
 func (w *walker) transformBy(m maths.Matrix) {
-	adjacencyOfNode := m.AdjacencyMap[w.pos]
-	w.pos = (*m.OrderedKeys)[adjacencyOfNode-1]
+	adjacencyOfNode := m.AdjacencyMap[w.position]
+	w.position = (*m.OrderedKeys)[adjacencyOfNode-1]
 }

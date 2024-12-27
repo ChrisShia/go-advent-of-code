@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"go-advent-of-code/utils/maths"
+	maths "github.com/ChrisShia/math-depot"
 	"testing"
 )
 
@@ -140,7 +140,7 @@ func walkersWithCachedPositions() team {
 }
 
 func newWalkerAndCache(pos string, cached []int) walker {
-	return walker{pos: pos, stepCache: cached}
+	return walker{position: pos, stepCache: cached}
 }
 
 func adjacencySet() []adjacency {
@@ -195,4 +195,16 @@ func createAdjacencyMatrices() (maths.Matrix, maths.Matrix) {
 	leftMatrix := maths.Matrix{OrderedMap: leftOrderedMap}
 	rightMatrix := maths.Matrix{OrderedMap: rightOrderedMap}
 	return leftMatrix, rightMatrix
+}
+
+func newW(startPos string) walker {
+	return newWalkerWithoutWriter(startPos, nil)
+}
+
+func newWalkerWithoutWriter(startPos string, vis func(w *walker, step int)) walker {
+	return walker{position: startPos, firstPos: startPos, visualizer: vis}
+}
+
+func newT(as []adjacency) team {
+	return newTeam(as, nil)
 }
